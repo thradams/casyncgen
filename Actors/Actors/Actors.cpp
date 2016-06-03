@@ -36,15 +36,6 @@ void SendAsync(const char* str,
                void(*onResult)(Result, void*),
                void* data);
 
-#ifdef _
-async SendAsync(const char* str)->void
-{
-  async[const char* str] AsynPool_Run() -> void
-  {
-    printf("chega em outro lugar %s\n", str);
-  }
-}
-#endif
 
 void MyServer_Print2(MyServer* pServer,
                      const char* name)
@@ -54,6 +45,14 @@ void MyServer_Print2(MyServer* pServer,
 
 
 #ifdef _
+
+async SendAsync(const char* str)->void
+{
+    async[const char* str] AsynPool_Run() -> void
+    {
+        printf("chega em outro lugar %s\n", str);
+    }
+}
 
 async MyServer_Post_Print(MyServer* pServer)->void
 {
@@ -67,12 +66,12 @@ async MyServer_Post_Print(MyServer* pServer)->void
 
 async MyServer_Post_Print2(MyServer* pServer,
                           const char* name, 
-                          const char* httpresponse)->void
+                          const char* httpresponse, int i)->void
 {
-  async[const char* name, const char* httpresponse]
+  async[const char* name, const char* httpresponse, int i]
     Actor_Post(&pServer->actor) -> Actor* pActor
   {
-    MyServer *pServer = (MyServer *)pActor->object;
+    MyServer *pServer = (MyServer *)pActor;
     MyServer_Print2(pServer, name);
    // async [const char* httpresponse] AsynPool_Run() -> void
     //{
@@ -92,7 +91,7 @@ int _tmain(int argc, _TCHAR* argv[])
   MyServer_Init(&server);
 
   MyServer_Post_Print(&server, &Default, 0);
-  MyServer_Post_Print2(&server, "name2", "httpresponse", &Default, 0);
+  MyServer_Post_Print2(&server, "name2", "ht///tpresponse", 3, &Default, 0);
 
   AsynPool_Join();
 

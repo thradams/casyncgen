@@ -5,7 +5,7 @@
 var bEnableLines = false;
 var lineBase = 0;
 var sourceFileName = "";
-
+var s_StaticId = 0;
 
 function GetLambdaName(call: Call, name: string): string {
     var s = name;
@@ -35,11 +35,11 @@ class Call {
     currentLine1: number;
     args: Array<TypeAndName>;
     captures: Array<TypeAndName>;
-    static staticid: number = 0;
+    
 
     constructor() {
-        this.id = Call.staticid;
-        Call.staticid++;
+        this.id = s_StaticId;
+        s_StaticId++;
 
         this.name = "";
         this.call = "";
@@ -66,7 +66,7 @@ function GenerateLines(indentation: number,
     lineNumber: number,
     lines: string) {
     var s = "";
-    s += "//USER CODE====================\n";
+    //s += "//USER CODE====================\n";
     var ar = lines.split('\n');
     for (var i = 0; i < ar.length; i++) {
         var tline = ar[i].trim();
@@ -83,7 +83,7 @@ function GenerateLines(indentation: number,
         lineNumber++;
     }
 
-    s += "//USER CODE====================\n";
+   // s += "//USER CODE====================\n";
 
     return s;
 }
@@ -106,13 +106,14 @@ function GenerateTargetErrorCall(target: Call) {
     s += "onResult(result";
     for (var i = 0; i < target.args.length; i++) {
         s += ", ";
-        s += "NULL";
+        s += "NULL"; //some default value
     }
     s += ", data);//target error call\n";
     return s;
 }
 
 function SameSizeOf(sInput: string) {
+    //gera uma string com mesmo tamanho so que com espacos
     var s = "";
     for (var i = 0; i < sInput.length; i++) {
         s += " ";
@@ -148,6 +149,41 @@ function GenerateCaptureNames(items: Array<TypeAndName>) {
     }
     return s;
 }
+
+function GetCopyStatement(ident : number, v: TypeAndName)
+{
+    var i = 0;
+    var s = "";
+    if (v.type == "const char*") {
+        s += Ident(ident) + "p->" + v.name + " = _strdup(" + v.name + ");\n";
+        s += Ident(ident) + "result == (p->" + v.name + " != NULL) ? RESULT_OK : RESULT_FAIL;\n";
+        s += Ident(ident) + "if (result == RESULT_OK)\n";
+        s += Ident(ident) + "{\n";
+        i = 1;
+    }
+    else
+    {
+        s += Ident(ident) + "p->" + v.name + " = " + v.name + ";\n";
+    }
+    
+    return { "str": s, "ident": i };
+}
+ 
+
+
+function GetDestroyStatement(ident: number, v: TypeAndName) {
+    var i = 0;
+    var s = "";
+    if (v.type == "const char*") {
+        s += Ident(ident + 1) + "free((void*)p->" + v.name + ");\n";        
+        
+        i = 1;
+    }
+    else {        
+    }
+    return { "str": s, "ident": i} ;
+}
+
 function GenerateCapture(identation: number, info: Call, source: Source) {
     var name0 = info.name;
     var captures = info.captures;
@@ -156,8 +192,7 @@ function GenerateCapture(identation: number, info: Call, source: Source) {
 
     var s = "";
 
-    //declara struct
-    s += "typedef struct \n";// + name + "\n";
+    s += "typedef struct \n";
     s += "{\n";
     for (var i = 0; i < captures.length; i++) {
         s += Ident(identation + 1) + captures[i].type + " " + captures[i].name + ";\n";
@@ -185,15 +220,46 @@ function GenerateCapture(identation: number, info: Call, source: Source) {
     s += Ident(identation + 1) + "if (result == RESULT_OK)\n";
     s += Ident(identation + 1) + "{\n";
     //implementa copias do init
+    //escadinha
+    var k = 0;
     for (var i = 0; i < captures.length; i++) {
-        s += Ident(identation + 2) + "p->" + captures[i].name + " = _strdup(" + captures[i].name + ");\n";
+
+        var pair = GetCopyStatement(identation + 2 + i, captures[i]);
+        s += pair.str;
+        k += pair.ident;
+
+        if (i == captures.length - 1)
+        {
+            s += Ident(identation + 2 + k ) + "p->onResult = onResult;\n";
+            s += Ident(identation+ 2 + k ) + "p->data = data;\n";
+            s += Ident(identation + 2 + k ) + "*pp = p;\n";
+            s += Ident(identation + 2 + k ) + "goto end;\n";
+        }
     }
 
-    s += Ident(identation + 2) + "p->onResult = onResult;\n";
-    s += Ident(identation + 2) + "p->data = data;\n";
-    s += Ident(identation + 2) + "*pp = p;\n";
-    s += Ident(identation + 1) + "}\n";
+    for (var i = captures.length - 1; i >= 0; i--) {
+        var pair = GetDestroyStatement(identation + 1 + k, captures[i]);
+        if (pair.ident == 1)
+        {
+            s += Ident(identation + 1 + k) + "}\n";
+        }
+        s += pair.str;
+        k -= pair.ident;        
+    }    
 
+    if (captures.length > 0) {
+        s += Ident(identation + 2) + "free((void*)p);\n";
+    }
+    else {
+        s += Ident(identation + 2 ) + "p->onResult = onResult;\n";
+        s += Ident(identation + 2 ) + "p->data = data;\n";
+        s += Ident(identation + 2 ) + "*pp = p;\n";
+    }
+
+    s += Ident(identation + 1) + "}\n";
+    if (captures.length > 0) {
+        s += "end:\n";
+    }
     s += Ident(identation + 1) + "return result;\n";
     s += "}\n";
 
@@ -202,12 +268,15 @@ function GenerateCapture(identation: number, info: Call, source: Source) {
 
     //implementa destroy
     s += "\n";
-    s += "static void" + " " + name + "_Destroy(" + name + "* p)\n";
+    s += "static void" + " " + name + "_Delete(" + name + "* p)\n";
     s += "{\n";
 
     for (var i = 0; i < captures.length; i++) {
-        s += Ident(identation + 1) + "free((void*)p->" + captures[i].name + ");\n";
+        
+        var pair = GetDestroyStatement(identation, captures[i]);
+        s += pair.str;
     }
+    s += Ident(identation + 1) +  "free((void*)p);\n";
     s += "}\n\n";
 
 
@@ -336,7 +405,7 @@ function GenerateLambda(index: number, infos: Array<Call>, source: Source) {
 
 
     s += "\n";
-    s += Ident(1) + GetCaptureName(info, name0) + "_Destroy((" + GetCaptureName(info, name0) + "*)" + "_data);\n";
+    s += Ident(1) + GetCaptureName(info, name0) + "_Delete((" + GetCaptureName(info, name0) + "*)" + "_data);\n";
     s += "} //lambda\n\n";
 
     return s;
@@ -562,20 +631,13 @@ function ParseAsyncBody(scanner: Scanner,
 
 function Parse(inputSource: string): string {
     var strResult = "";
-    var manySources = new Array<Source>();
-
-
-    //try
-    //{
+    
     var scanner = new Scanner(inputSource);
-    // var lines = "";
     for (; ;) {
-        var sourceOut = new Source();
-
-
-
-
+        
         if (scanner.lexeme == "async") {
+
+            var sourceOut = new Source();
             //            scanner.SkipBlanks();
             scanner.MatchLexeme("async");
             scanner.SkipBlanks();
