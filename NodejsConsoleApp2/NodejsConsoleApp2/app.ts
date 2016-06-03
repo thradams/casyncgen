@@ -7,29 +7,25 @@ var lineBase = 0;
 var sourceFileName = "";
 
 
-function GetLambdaName(call: Call, name: string): string
-{
+function GetLambdaName(call: Call, name: string): string {
     var s = name;
     s += "_Lambda" + call.id;
     return s;
 }
 
 
-function GetCaptureName(call: Call, name: string): string
-{
+function GetCaptureName(call: Call, name: string): string {
     var s = name;
     s += "_Capture" + call.id;
     return s;
 }
 
-interface TypeAndName
-{
+interface TypeAndName {
     name: string;
     type: string;
 }
 
-class Call
-{
+class Call {
     name: string;
     id: number;
     call: string;
@@ -41,8 +37,7 @@ class Call
     captures: Array<TypeAndName>;
     static staticid: number = 0;
 
-    constructor()
-    {
+    constructor() {
         this.id = Call.staticid;
         Call.staticid++;
 
@@ -57,13 +52,11 @@ class Call
     }
 }
 
-class Source
-{
+class Source {
     firstCall: Call;
     calls: Array<Call>;
 
-    constructor()
-    {
+    constructor() {
         this.firstCall = new Call();
         this.calls = new Array<Call>();
     }
@@ -71,19 +64,15 @@ class Source
 
 function GenerateLines(indentation: number,
     lineNumber: number,
-    lines: string)
-{
+    lines: string) {
     var s = "";
     s += "//USER CODE====================\n";
     var ar = lines.split('\n');
-    for (var i = 0; i < ar.length; i++)
-    {
+    for (var i = 0; i < ar.length; i++) {
         var tline = ar[i].trim();
-        if (bEnableLines && tline != "")
-        {
+        if (bEnableLines && tline != "") {
             s += "#line " + (lineBase + lineNumber);
-            if (sourceFileName)
-            {
+            if (sourceFileName) {
                 s += " \"" + sourceFileName + "\"";
             }
 
@@ -99,12 +88,10 @@ function GenerateLines(indentation: number,
     return s;
 }
 
-function GenerateTargetTypeVar(target: Call)
-{
+function GenerateTargetTypeVar(target: Call) {
     var s = "";
     s += "void (*onResult)(Result";
-    for (var i = 0; i < target.args.length; i++)
-    {
+    for (var i = 0; i < target.args.length; i++) {
         s += ", ";
         s += target.args[i].type;
     }
@@ -113,13 +100,11 @@ function GenerateTargetTypeVar(target: Call)
     return s;
 }
 
-function GenerateTargetErrorCall(target: Call)
-{
+function GenerateTargetErrorCall(target: Call) {
     var s = "";
 
     s += "onResult(result";
-    for (var i = 0; i < target.args.length; i++)
-    {
+    for (var i = 0; i < target.args.length; i++) {
         s += ", ";
         s += "NULL";
     }
@@ -127,54 +112,43 @@ function GenerateTargetErrorCall(target: Call)
     return s;
 }
 
-function SameSizeOf(sInput: string)
-{
+function SameSizeOf(sInput: string) {
     var s = "";
-    for (var i = 0; i < sInput.length; i++)
-    {
+    for (var i = 0; i < sInput.length; i++) {
         s += " ";
     }
     return s;
 }
 
-function Ident(n: number)
-{
+function Ident(n: number) {
     var s = "";
-    for (var i = 0; i < n; i++)
-    {
+    for (var i = 0; i < n; i++) {
         s += "    ";
     }
     return s;
 }
-function GenerateArguments(spaces: string, items: Array<TypeAndName>)
-{
+function GenerateArguments(spaces: string, items: Array<TypeAndName>) {
     var s = "";
-    for (var i = 0; i < items.length; i++)
-    {
+    for (var i = 0; i < items.length; i++) {
         s += items[i].type + " " + items[i].name;
-        if (i < items.length - 1)
-        {
+        if (i < items.length - 1) {
             s += ",\n" + spaces;
         }
     }
     return s;
 }
 
-function GenerateCaptureNames(items: Array<TypeAndName>)
-{
+function GenerateCaptureNames(items: Array<TypeAndName>) {
     var s = "";
-    for (var i = 0; i < items.length; i++)
-    {
+    for (var i = 0; i < items.length; i++) {
         s += items[i].name;
-        if (i < items.length - 1)
-        {
+        if (i < items.length - 1) {
             s += ", ";
         }
     }
     return s;
 }
-function GenerateCapture(identation: number, info: Call, source: Source)
-{
+function GenerateCapture(identation: number, info: Call, source: Source) {
     var name0 = info.name;
     var captures = info.captures;
     var name = GetCaptureName(info, name0);
@@ -185,8 +159,7 @@ function GenerateCapture(identation: number, info: Call, source: Source)
     //declara struct
     s += "typedef struct \n";// + name + "\n";
     s += "{\n";
-    for (var i = 0; i < captures.length; i++)
-    {
+    for (var i = 0; i < captures.length; i++) {
         s += Ident(identation + 1) + captures[i].type + " " + captures[i].name + ";\n";
     }
 
@@ -201,8 +174,7 @@ function GenerateCapture(identation: number, info: Call, source: Source)
     //implementa init
     s += "\n";
     var captureStr = GenerateArguments(spaces, captures);
-    if (captureStr != "")
-    {
+    if (captureStr != "") {
         captureStr += ",\n" + spaces;
     }
     s += "static " + ErrorType + " " + name + "_Init(" + name + "** pp,\n" + spaces + captureStr + GenerateTargetTypeVar(source.firstCall) + ",\n" + spaces + "void* data" + ")\n";
@@ -213,8 +185,7 @@ function GenerateCapture(identation: number, info: Call, source: Source)
     s += Ident(identation + 1) + "if (result == RESULT_OK)\n";
     s += Ident(identation + 1) + "{\n";
     //implementa copias do init
-    for (var i = 0; i < captures.length; i++)
-    {
+    for (var i = 0; i < captures.length; i++) {
         s += Ident(identation + 2) + "p->" + captures[i].name + " = _strdup(" + captures[i].name + ");\n";
     }
 
@@ -234,8 +205,7 @@ function GenerateCapture(identation: number, info: Call, source: Source)
     s += "static void" + " " + name + "_Destroy(" + name + "* p)\n";
     s += "{\n";
 
-    for (var i = 0; i < captures.length; i++)
-    {
+    for (var i = 0; i < captures.length; i++) {
         s += Ident(identation + 1) + "free((void*)p->" + captures[i].name + ");\n";
     }
     s += "}\n\n";
@@ -246,8 +216,7 @@ function GenerateCapture(identation: number, info: Call, source: Source)
 
 function GenerateCaptureLocal(call: Call,
     captures: Array<TypeAndName>,
-    source: Source)
-{
+    source: Source) {
     var name0 = call.name;
     var name = GetCaptureName(call, name0);
 
@@ -255,8 +224,7 @@ function GenerateCaptureLocal(call: Call,
 
     var s = "";
 
-    for (var i = 0; i < captures.length; i++)
-    {
+    for (var i = 0; i < captures.length; i++) {
         s += Ident(1) + captures[i].type + " " + captures[i].name + " = ((" + name + "*) _data)->" + captures[i].name + ";\n";
     }
 
@@ -268,8 +236,7 @@ function GenerateCaptureLocal(call: Call,
 function GenerateLambdaCall(identation: number,
     info: Call,
     lines1: string,
-    source: Source)
-{
+    source: Source) {
     var s = "";
     var name0 = info.name;
     var name = GetLambdaName(info, name0);
@@ -280,8 +247,7 @@ function GenerateLambdaCall(identation: number,
 
     s += Ident(identation + 1) + "" + GetCaptureName(info, name0) + "* " + "_cap" + ";\n";
     var capStr = GenerateCaptureNames(info.captures);
-    if (capStr != "")
-    {
+    if (capStr != "") {
         capStr += ", ";
     }
 
@@ -290,8 +256,7 @@ function GenerateLambdaCall(identation: number,
     s += Ident(identation + 1) + "{\n";
 
     var callargs = ""
-    if (info.call != "")
-    {
+    if (info.call != "") {
         callargs = info.call + ", ";
     }
     s += Ident(identation + 2) + name0 + "( " + callargs + name + ", " + "_cap" + ");\n";
@@ -304,8 +269,7 @@ function GenerateLambdaCall(identation: number,
     return s;
 }
 
-function GenerateLambda(index: number, infos: Array<Call>, source: Source)
-{
+function GenerateLambda(index: number, infos: Array<Call>, source: Source) {
     var info = infos[index];
 
     var name0 = info.name;
@@ -316,8 +280,7 @@ function GenerateLambda(index: number, infos: Array<Call>, source: Source)
     var spaces = SameSizeOf("static void " + name + "(");
     var s = "";
     var funcargs = GenerateArguments(spaces, info.args);
-    if (funcargs != "")
-    {
+    if (funcargs != "") {
         funcargs += ", ";
     }
     s += "static void " + name + "(" + ErrorType + " " + ErrorVar + ", " + funcargs + "void* _data)\n";
@@ -329,8 +292,7 @@ function GenerateLambda(index: number, infos: Array<Call>, source: Source)
     s += "\n";
     s += Ident(1) + "if (" + ErrorVar + " == RESULT_OK)\n";
     s += Ident(1) + "{\n";
-    if (index < infos.length - 1)
-    {
+    if (index < infos.length - 1) {
         s += Ident(2) + "//continuation\n";
         s += GenerateLines(2, info.currentLine0, info.lines0);
         var lines1 = GenerateLines(2, info.currentLine1, info.lines1);
@@ -338,13 +300,11 @@ function GenerateLambda(index: number, infos: Array<Call>, source: Source)
 
         s += Ident(1) + "} //if\n";
     }
-    else
-    {
+    else {
         s += Ident(2) + "//succeded!!\n";
 
         var targetResultsStr = source.firstCall.call;
-        if (targetResultsStr != "")
-        {
+        if (targetResultsStr != "") {
             //se tem call eh pq tem um resultado
             //deve ser chamado com return
             s += GenerateLines(2, info.currentLine0, info.lines0);
@@ -353,8 +313,7 @@ function GenerateLambda(index: number, infos: Array<Call>, source: Source)
             s += GenerateLines(2, info.currentLine1, info.lines1);
             //s += Ident(1) + "}\n";
         }
-        else
-        {
+        else {
             //provamente nao tem return
             //neste caso se inverte e coloca o lines1 antes do onresult
 
@@ -383,14 +342,12 @@ function GenerateLambda(index: number, infos: Array<Call>, source: Source)
     return s;
 }
 
-function Generate(source: Source)
-{
+function Generate(source: Source) {
     var strResult = "";
 
     var s = "";
 
-    for (var i = (source.calls.length - 1); i >= 0; i--)
-    {
+    for (var i = (source.calls.length - 1); i >= 0; i--) {
         s += GenerateCapture(0, source.calls[i], source);
         s += GenerateLambda(i, source.calls, source);
     }
@@ -399,8 +356,7 @@ function Generate(source: Source)
 
     var spaces = SameSizeOf("Result " + source.firstCall.name + "(");
     var captureStr = GenerateArguments(spaces, source.firstCall.captures);
-    if (captureStr != "")
-    {
+    if (captureStr != "") {
         captureStr += ",\n" + spaces;
     }
     s += "void " + source.firstCall.name + "(" + captureStr + GenerateTargetTypeVar(source.firstCall) + ",\n" + spaces + "void* data" + ")\n";
@@ -416,26 +372,22 @@ function Generate(source: Source)
     return strResult;
 }
 
-function ParseFunctionResult(scanner: Scanner)
-{
+function ParseFunctionResult(scanner: Scanner) {
     var typesAndNames = new Array<TypeAndName>();
     scanner.SkipBlanks();
     scanner.MatchToken("-");
     scanner.MatchToken(">");
     scanner.SkipBlanks();
-    if (scanner.lexeme == "void")
-    {
+    if (scanner.lexeme == "void") {
         //pode ser sem retorno
         scanner.MatchLexeme("void");
         scanner.SkipBlanks();
-        if (scanner.token != '{')
-        {
+        if (scanner.token != '{') {
             var typename = "void";
             var modifier = "";
             var pointer = "";
             scanner.SkipBlanks();
-            if (scanner.token == "*")
-            {
+            if (scanner.token == "*") {
                 pointer = scanner.MatchToken("*");
                 scanner.SkipBlanks();
             }
@@ -445,28 +397,22 @@ function ParseFunctionResult(scanner: Scanner)
             typesAndNames.push({ "type": modifier + typename + pointer, "name": name });
         }
     }
-    else
-    {
+    else {
         //normal
         typesAndNames.push(ParseTypeAndName(scanner));
-        if (scanner.token == ",")
-        {
+        if (scanner.token == ",") {
             scanner.MatchToken(",");
         }
     }
-    while (scanner.token != "{")
-    {
+    while (scanner.token != "{") {
         typesAndNames.push(ParseTypeAndName(scanner));
-        if (scanner.token == "{")
-        {
+        if (scanner.token == "{") {
             break;
         }
-        else if (scanner.token == ",")
-        {
+        else if (scanner.token == ",") {
             scanner.MatchToken(",");
         }
-        else
-        {
+        else {
             throw "expected , or }";
         }
     }
@@ -475,15 +421,13 @@ function ParseFunctionResult(scanner: Scanner)
     return typesAndNames;
 }
 
-function ParseTypeAndName(scanner: Scanner)
-{
+function ParseTypeAndName(scanner: Scanner) {
     scanner.SkipBlanks();
     var modifier = "";
     var pointer = "";
 
     if (scanner.lexeme == "const" ||
-        scanner.lexeme == "unsigned")
-    {
+        scanner.lexeme == "unsigned") {
         var modifier = scanner.MatchToken("identifier");
         modifier += " ";
         scanner.SkipBlanks();
@@ -492,8 +436,7 @@ function ParseTypeAndName(scanner: Scanner)
     var typename = scanner.MatchToken("identifier");
     scanner.SkipBlanks();
 
-    if (scanner.token == "*")
-    {
+    if (scanner.token == "*") {
         pointer = scanner.MatchToken("*");
         scanner.SkipBlanks();
     }
@@ -503,28 +446,23 @@ function ParseTypeAndName(scanner: Scanner)
     return { "type": modifier + typename + pointer, "name": name };
 }
 
-function ParseAsyncCallAndDeclaration(scanner: Scanner, call: Call)
-{
+function ParseAsyncCallAndDeclaration(scanner: Scanner, call: Call) {
 
     scanner.MatchLexeme("async");
     scanner.SkipBlanks();
 
 
     scanner.MatchLexeme("[");
-    while (scanner.token != "]")
-    {
+    while (scanner.token != "]") {
         call.captures.push(ParseTypeAndName(scanner));
 
-        if (scanner.token == "]")
-        {
+        if (scanner.token == "]") {
         }
-        else if (scanner.token == ",")
-        {
+        else if (scanner.token == ",") {
             scanner.MatchToken(",");
             scanner.SkipBlanks();
         }
-        else
-        {
+        else {
             throw "expected , or )";
         }
     }//captures
@@ -538,10 +476,8 @@ function ParseAsyncCallAndDeclaration(scanner: Scanner, call: Call)
     scanner.MatchToken("(");
     scanner.SkipBlanks();
     var callStr = "";
-    for (; ;)
-    {
-        if (scanner.token == ")")
-        {
+    for (; ;) {
+        if (scanner.token == ")") {
             scanner.MatchToken(")");
             break;
         }
@@ -554,17 +490,14 @@ function ParseAsyncCallAndDeclaration(scanner: Scanner, call: Call)
 
 function ParseAsyncBody(scanner: Scanner,
     originBodyCall: Call,
-    sourceOut: Source)
-{
+    sourceOut: Source) {
     var functionBodyStartLine = scanner.currentLine;
     var functionBodyEndLine = 0;
     var blockCount = 1;
 
     var lines = "";
-    for (; ;)
-    {
-        if (scanner.lexeme == "return")
-        {
+    for (; ;) {
+        if (scanner.lexeme == "return") {
             originBodyCall.currentLine0 = functionBodyStartLine;
             originBodyCall.lines0 = lines;
 
@@ -573,15 +506,12 @@ function ParseAsyncBody(scanner: Scanner,
             scanner.MatchLexeme("return");
             scanner.SkipBlanks();
             sourceOut.firstCall.call = "";
-            for (; ;)
-            {
-                if (scanner.token != ';')
-                {
+            for (; ;) {
+                if (scanner.token != ';') {
                     //?
                     sourceOut.firstCall.call += scanner.lexeme;
                 }
-                else
-                {
+                else {
                     break;
                 }
                 scanner.Next();
@@ -589,8 +519,7 @@ function ParseAsyncBody(scanner: Scanner,
             scanner.MatchToken(';');
             scanner.SkipBlanks();
         }
-        else if (scanner.lexeme == "async")
-        {
+        else if (scanner.lexeme == "async") {
             originBodyCall.currentLine0 = functionBodyStartLine;
             originBodyCall.lines0 = lines;
 
@@ -600,11 +529,9 @@ function ParseAsyncBody(scanner: Scanner,
             ParseAsyncCallAndDeclaration(scanner, call);
             ParseAsyncBody(scanner, call, sourceOut);
         }
-        else if (scanner.token == "}")
-        {
+        else if (scanner.token == "}") {
             blockCount--;
-            if (blockCount <= 0)
-            {
+            if (blockCount <= 0) {
                 //entende que a ultima chave fechada
                 //fecha o body da funcao                
                 scanner.MatchToken('}');
@@ -612,24 +539,20 @@ function ParseAsyncBody(scanner: Scanner,
                 functionBodyEndLine = scanner.currentLine;
                 break;
             }
-            else
-            {
+            else {
                 lines += scanner.lexeme;
                 scanner.Next();
             }
         }
-        else
-        {
-            if (scanner.token == "{")
-            {
+        else {
+            if (scanner.token == "{") {
                 blockCount++;
             }
             lines += scanner.lexeme;
             scanner.Next();
         }
 
-        if (scanner.token == "eof")
-        {
+        if (scanner.token == "eof") {
             break;
         }
     }
@@ -637,8 +560,7 @@ function ParseAsyncBody(scanner: Scanner,
     originBodyCall.lines1 = lines;
 }
 
-function Parse(inputSource: string): string
-{
+function Parse(inputSource: string): string {
     var strResult = "";
     var manySources = new Array<Source>();
 
@@ -647,15 +569,13 @@ function Parse(inputSource: string): string
     //{
     var scanner = new Scanner(inputSource);
     // var lines = "";
-    for (; ;)
-    {
+    for (; ;) {
         var sourceOut = new Source();
 
 
 
 
-        if (scanner.lexeme == "async")
-        {
+        if (scanner.lexeme == "async") {
             //            scanner.SkipBlanks();
             scanner.MatchLexeme("async");
             scanner.SkipBlanks();
@@ -664,21 +584,17 @@ function Parse(inputSource: string): string
             scanner.MatchToken("(");
             scanner.SkipBlanks();
 
-            while (scanner.token != ")")
-            {
+            while (scanner.token != ")") {
                 //Na funcao principal usa os captures como se fossem os parametros
                 sourceOut.firstCall.captures.push(ParseTypeAndName(scanner));
 
-                if (scanner.token == ")")
-                {
+                if (scanner.token == ")") {
                 }
-                else if (scanner.token == ",")
-                {
+                else if (scanner.token == ",") {
                     scanner.MatchToken(",");
                     scanner.SkipBlanks();
                 }
-                else
-                {
+                else {
                     throw "expected , or )";
                 }
             }//parametros
@@ -691,20 +607,17 @@ function Parse(inputSource: string): string
             strResult += Generate(sourceOut);
             //;;manySources.push(sourceOut);
 
-            if (scanner.token == "eof")
-            {
+            if (scanner.token == "eof") {
                 //ok!
                 break;
             }
         }//async
-        else
-        {
+        else {
             //se quer ignorar
             //strResult += scanner.lexeme;
             scanner.Next();
         }
-        if (scanner.token == "eof")
-        {
+        if (scanner.token == "eof") {
             //ok!
             break;
         }
@@ -713,8 +626,7 @@ function Parse(inputSource: string): string
     return strResult;
 }
 
-class Scanner
-{
+class Scanner {
     stringSource: string;
     current: number;
 
@@ -722,47 +634,38 @@ class Scanner
     token: string;
     currentLine: number;
 
-    constructor(src: string)
-    {
+    constructor(src: string) {
         this.currentLine = 0;
         this.current = 0;
         this.stringSource = src;
         this.Next();
     }
 
-    public MatchLexeme(tk: string)
-    {
-        if (this.lexeme != tk)
-        {
+    public MatchLexeme(tk: string) {
+        if (this.lexeme != tk) {
             throw "Lexeme expected =" + tk + ", got " + this.token + " " + " " + this.lexeme + " at line " + this.currentLine;
         }
         this.Next();
     }
 
-    public MatchToken(tk: string)
-    {
+    public MatchToken(tk: string) {
         var lexeme = this.lexeme;
-        if (this.token != tk)
-        {
+        if (this.token != tk) {
             throw "Token expected =" + tk + ", got " + this.token + " " + " " + this.lexeme + " at line " + this.currentLine;
         }
         this.Next();
         return lexeme;
     }
 
-    public SkipBlanks()
-    {
+    public SkipBlanks() {
         while (this.token != "eof" &&
-            (this.token == "whitespace" || this.token == "linebreak"))
-        {
+            (this.token == "whitespace" || this.token == "linebreak")) {
             this.Next();
         }
     }
 
-    public Next()
-    {
-        if (this.current == this.stringSource.length - 1)
-        {
+    public Next() {
+        if (this.current == this.stringSource.length - 1) {
             this.lexeme = "";
             this.token = "eof";
             return false;
@@ -770,8 +673,7 @@ class Scanner
 
         var ch = this.stringSource[this.current];
 
-        if (ch == '\n')
-        {
+        if (ch == '\n') {
             //incrementa a linha
             this.currentLine++;
 
@@ -782,14 +684,12 @@ class Scanner
         }
 
         var whitespace = "";
-        while (ch == ' ' || ch == '\n' || ch == '\r' || ch == '\t')
-        {
+        while (ch == ' ' || ch == '\n' || ch == '\r' || ch == '\t') {
             whitespace += ch;
             this.current++;
             ch = this.stringSource[this.current];
         }
-        if (whitespace != "")
-        {
+        if (whitespace != "") {
             this.lexeme = whitespace;
             this.token = "whitespace";
             return true;
@@ -798,38 +698,31 @@ class Scanner
         var identifier = "";
         if ((ch >= 'a' && ch <= 'z') ||
             (ch >= 'A' && ch <= 'Z') ||
-            (ch == '_'))
-        {
+            (ch == '_')) {
             while ((ch >= 'a' && ch <= 'z') ||
                 (ch >= 'A' && ch <= 'Z') ||
                 (ch >= '0' && ch <= '9') ||
-                (ch == '_'))
-            {
+                (ch == '_')) {
                 identifier += ch;
                 this.current++;
                 ch = this.stringSource[this.current];
             }
         }
 
-        if (identifier != "")
-        {
+        if (identifier != "") {
             this.lexeme = identifier;
             this.token = "identifier";
             return true;
         }
 
         var lineComment = "";
-        if (ch == "/")
-        {
+        if (ch == "/") {
             //tenta olhar um adiante
-            if (this.current + 1 < this.stringSource.length)
-            {
-                if (this.stringSource[this.current + 1] == "/")
-                {
+            if (this.current + 1 < this.stringSource.length) {
+                if (this.stringSource[this.current + 1] == "/") {
                     lineComment = "";
                     //comentario de linha!
-                    while (ch != '\n')
-                    {
+                    while (ch != '\n') {
                         lineComment += ch;
                         this.current++;
                         ch = this.stringSource[this.current];
@@ -837,22 +730,19 @@ class Scanner
                 }
             }
         }
-        if (lineComment != "")
-        {
+        if (lineComment != "") {
             this.lexeme = lineComment;
             this.token = "comment";
             return true;
         }
 
         var strliteral = "";
-        if (ch == "\"")
-        {
+        if (ch == "\"") {
             strliteral += ch;
             this.current++;
             ch = this.stringSource[this.current];
 
-            while (ch != '"')
-            {
+            while (ch != '"') {
                 strliteral += ch;
                 this.current++;
                 ch = this.stringSource[this.current];
@@ -862,15 +752,13 @@ class Scanner
             this.current++;
             ch = this.stringSource[this.current];
         }
-        if (strliteral != "")
-        {
+        if (strliteral != "") {
             this.lexeme = strliteral;
             this.token = "strliteral";
             return true;
         }
 
-        if (this.current >= this.stringSource.length)
-        {
+        if (this.current >= this.stringSource.length) {
             this.lexeme = "";
             this.token = "eof";
             return false;
@@ -896,37 +784,31 @@ var fs = require('fs');
 var path = require('path');
 
 
-if (process.argv.length <= 2)
-{
+if (process.argv.length <= 2) {
     console.log("Usage: " + __filename + " SOME_PARAM");
     process.exit(-1);
 }
 
 var param = process.argv[2];
-console.log('Param: ' + param);
 
 sourceFileName = path.basename(param);
-
 
 var inputSourceText = fs.readFileSync(param, "utf8");
 inputSourceText = inputSourceText.toString().replace(/^\uFEFF/, ''); // Strips BOM
 
 var r = "";
 //tem que gerar este source
-try
-{
-    r = Parse(inputSourceText);
-
+try {    
+    r = Parse(inputSourceText);    
     var fileOut = param;
     fileOut = fileOut.replace(".cpp", '_g_.cpp');
     fs.writeFileSync(fileOut, r, 'utf8');
-    console.log(fileOut + " generated with success!!\n");
+    console.log(fileOut + "\n generated with success!!\n");
 }
-catch (e)
-{
+catch (e) {
     r = e;
     console.log(e);
 }
 
-process.exit(1);
+process.exit(0);
 

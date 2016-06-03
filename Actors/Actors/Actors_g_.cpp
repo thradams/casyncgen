@@ -3,15 +3,15 @@ typedef struct
     const char* str;
     void (*onResult)(Result, void*);
     void* data;
-} AsynPool_Run_Capture208;
+} AsynPool_Run_Capture196;
 
-static Result AsynPool_Run_Capture208_Init(AsynPool_Run_Capture208** pp,
+static Result AsynPool_Run_Capture196_Init(AsynPool_Run_Capture196** pp,
                                            const char* str,
                                            void (*onResult)(Result, void*),
                                            void* data)
 {
     Result result;
-    AsynPool_Run_Capture208 *p = (AsynPool_Run_Capture208*)malloc(sizeof(AsynPool_Run_Capture208));
+    AsynPool_Run_Capture196 *p = (AsynPool_Run_Capture196*)malloc(sizeof(AsynPool_Run_Capture196));
     result = p ? RESULT_OK : RESULT_OUTOFMEM;
     if (result == RESULT_OK)
     {
@@ -23,17 +23,17 @@ static Result AsynPool_Run_Capture208_Init(AsynPool_Run_Capture208** pp,
     return result;
 }
 
-static void AsynPool_Run_Capture208_Destroy(AsynPool_Run_Capture208* p)
+static void AsynPool_Run_Capture196_Destroy(AsynPool_Run_Capture196* p)
 {
     free((void*)p->str);
 }
 
-static void AsynPool_Run_Lambda208(Result result, void* _data)
+static void AsynPool_Run_Lambda196(Result result, void* _data)
 {
     //capture vars
-    const char* str = ((AsynPool_Run_Capture208*) _data)->str;
-    void (*onResult)(Result, void*) = ((AsynPool_Run_Capture208*) _data)->onResult;
-    void* data = ((AsynPool_Run_Capture208*) _data)->data;
+    const char* str = ((AsynPool_Run_Capture196*) _data)->str;
+    void (*onResult)(Result, void*) = ((AsynPool_Run_Capture196*) _data)->onResult;
+    void* data = ((AsynPool_Run_Capture196*) _data)->data;
 
 
     if (result == RESULT_OK)
@@ -53,7 +53,7 @@ static void AsynPool_Run_Lambda208(Result result, void* _data)
         onResult(result, data);//target error call
     }//else
 
-    AsynPool_Run_Capture208_Destroy((AsynPool_Run_Capture208*)_data);
+    AsynPool_Run_Capture196_Destroy((AsynPool_Run_Capture196*)_data);
 } //lambda
 
 
@@ -68,11 +68,11 @@ void SendAsync(const char* str,
     
 //USER CODE====================
 
-    AsynPool_Run_Capture208* _cap;
-    result = AsynPool_Run_Capture208_Init(&_cap, str, onResult, data);
+    AsynPool_Run_Capture196* _cap;
+    result = AsynPool_Run_Capture196_Init(&_cap, str, onResult, data);
     if (result == RESULT_OK)
     {
-        AsynPool_Run( AsynPool_Run_Lambda208, _cap);
+        AsynPool_Run( AsynPool_Run_Lambda196, _cap);
 //USER CODE====================
     
 //USER CODE====================
@@ -86,14 +86,14 @@ typedef struct
 {
     void (*onResult)(Result, void*);
     void* data;
-} Actor_Post_Capture252;
+} Actor_Post_Capture240;
 
-static Result Actor_Post_Capture252_Init(Actor_Post_Capture252** pp,
+static Result Actor_Post_Capture240_Init(Actor_Post_Capture240** pp,
                                          void (*onResult)(Result, void*),
                                          void* data)
 {
     Result result;
-    Actor_Post_Capture252 *p = (Actor_Post_Capture252*)malloc(sizeof(Actor_Post_Capture252));
+    Actor_Post_Capture240 *p = (Actor_Post_Capture240*)malloc(sizeof(Actor_Post_Capture240));
     result = p ? RESULT_OK : RESULT_OUTOFMEM;
     if (result == RESULT_OK)
     {
@@ -104,15 +104,15 @@ static Result Actor_Post_Capture252_Init(Actor_Post_Capture252** pp,
     return result;
 }
 
-static void Actor_Post_Capture252_Destroy(Actor_Post_Capture252* p)
+static void Actor_Post_Capture240_Destroy(Actor_Post_Capture240* p)
 {
 }
 
-static void Actor_Post_Lambda252(Result result, Actor* pActor, void* _data)
+static void Actor_Post_Lambda240(Result result, Actor* pActor, void* _data)
 {
     //capture vars
-    void (*onResult)(Result, void*) = ((Actor_Post_Capture252*) _data)->onResult;
-    void* data = ((Actor_Post_Capture252*) _data)->data;
+    void (*onResult)(Result, void*) = ((Actor_Post_Capture240*) _data)->onResult;
+    void* data = ((Actor_Post_Capture240*) _data)->data;
 
 
     if (result == RESULT_OK)
@@ -133,7 +133,7 @@ static void Actor_Post_Lambda252(Result result, Actor* pActor, void* _data)
         onResult(result, data);//target error call
     }//else
 
-    Actor_Post_Capture252_Destroy((Actor_Post_Capture252*)_data);
+    Actor_Post_Capture240_Destroy((Actor_Post_Capture240*)_data);
 } //lambda
 
 
@@ -148,11 +148,11 @@ void MyServer_Post_Print(MyServer* pServer,
     
 //USER CODE====================
 
-    Actor_Post_Capture252* _cap;
-    result = Actor_Post_Capture252_Init(&_cap, onResult, data);
+    Actor_Post_Capture240* _cap;
+    result = Actor_Post_Capture240_Init(&_cap, onResult, data);
     if (result == RESULT_OK)
     {
-        Actor_Post( &pServer->actor, Actor_Post_Lambda252, _cap);
+        Actor_Post( &pServer->actor, Actor_Post_Lambda240, _cap);
 //USER CODE====================
     
 //USER CODE====================
@@ -168,16 +168,16 @@ typedef struct
     const char* httpresponse;
     void (*onResult)(Result, void*);
     void* data;
-} Actor_Post_Capture254;
+} Actor_Post_Capture242;
 
-static Result Actor_Post_Capture254_Init(Actor_Post_Capture254** pp,
+static Result Actor_Post_Capture242_Init(Actor_Post_Capture242** pp,
                                          const char* name,
                                          const char* httpresponse,
                                          void (*onResult)(Result, void*),
                                          void* data)
 {
     Result result;
-    Actor_Post_Capture254 *p = (Actor_Post_Capture254*)malloc(sizeof(Actor_Post_Capture254));
+    Actor_Post_Capture242 *p = (Actor_Post_Capture242*)malloc(sizeof(Actor_Post_Capture242));
     result = p ? RESULT_OK : RESULT_OUTOFMEM;
     if (result == RESULT_OK)
     {
@@ -190,19 +190,19 @@ static Result Actor_Post_Capture254_Init(Actor_Post_Capture254** pp,
     return result;
 }
 
-static void Actor_Post_Capture254_Destroy(Actor_Post_Capture254* p)
+static void Actor_Post_Capture242_Destroy(Actor_Post_Capture242* p)
 {
     free((void*)p->name);
     free((void*)p->httpresponse);
 }
 
-static void Actor_Post_Lambda254(Result result, Actor* pActor, void* _data)
+static void Actor_Post_Lambda242(Result result, Actor* pActor, void* _data)
 {
     //capture vars
-    const char* name = ((Actor_Post_Capture254*) _data)->name;
-    const char* httpresponse = ((Actor_Post_Capture254*) _data)->httpresponse;
-    void (*onResult)(Result, void*) = ((Actor_Post_Capture254*) _data)->onResult;
-    void* data = ((Actor_Post_Capture254*) _data)->data;
+    const char* name = ((Actor_Post_Capture242*) _data)->name;
+    const char* httpresponse = ((Actor_Post_Capture242*) _data)->httpresponse;
+    void (*onResult)(Result, void*) = ((Actor_Post_Capture242*) _data)->onResult;
+    void* data = ((Actor_Post_Capture242*) _data)->data;
 
 
     if (result == RESULT_OK)
@@ -212,7 +212,7 @@ static void Actor_Post_Lambda254(Result result, Actor* pActor, void* _data)
         
 //USER CODE====================
 //USER CODE====================
-        MyServer *pServer = (MyServer *)pActor;
+        MyServer *pServer = (MyServer *)pActor->object;
         MyServer_Print2(pServer, name);
         // async [const char* httpresponse] AsynPool_Run() -> void
         //{
@@ -227,7 +227,7 @@ static void Actor_Post_Lambda254(Result result, Actor* pActor, void* _data)
         onResult(result, data);//target error call
     }//else
 
-    Actor_Post_Capture254_Destroy((Actor_Post_Capture254*)_data);
+    Actor_Post_Capture242_Destroy((Actor_Post_Capture242*)_data);
 } //lambda
 
 
@@ -244,11 +244,11 @@ void MyServer_Post_Print2(MyServer* pServer,
     
 //USER CODE====================
 
-    Actor_Post_Capture254* _cap;
-    result = Actor_Post_Capture254_Init(&_cap, name, httpresponse, onResult, data);
+    Actor_Post_Capture242* _cap;
+    result = Actor_Post_Capture242_Init(&_cap, name, httpresponse, onResult, data);
     if (result == RESULT_OK)
     {
-        Actor_Post( &pServer->actor, Actor_Post_Lambda254, _cap);
+        Actor_Post( &pServer->actor, Actor_Post_Lambda242, _cap);
 //USER CODE====================
     
 //USER CODE====================
