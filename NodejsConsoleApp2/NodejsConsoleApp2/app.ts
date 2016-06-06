@@ -35,7 +35,7 @@ class Call {
     currentLine1: number;
     args: Array<TypeAndName>;
     captures: Array<TypeAndName>;
-    
+
 
     constructor() {
         this.id = s_StaticId;
@@ -83,7 +83,7 @@ function GenerateLines(indentation: number,
         lineNumber++;
     }
 
-   // s += "//USER CODE====================\n";
+    // s += "//USER CODE====================\n";
 
     return s;
 }
@@ -150,8 +150,7 @@ function GenerateCaptureNames(items: Array<TypeAndName>) {
     return s;
 }
 
-function GetCopyStatement(ident : number, v: TypeAndName)
-{
+function GetCopyStatement(ident: number, v: TypeAndName) {
     var i = 0;
     var s = "";
     if (v.type == "const char*") {
@@ -161,27 +160,26 @@ function GetCopyStatement(ident : number, v: TypeAndName)
         s += Ident(ident) + "{\n";
         i = 1;
     }
-    else
-    {
+    else {
         s += Ident(ident) + "p->" + v.name + " = " + v.name + ";\n";
     }
-    
+
     return { "str": s, "ident": i };
 }
- 
+
 
 
 function GetDestroyStatement(ident: number, v: TypeAndName) {
     var i = 0;
     var s = "";
     if (v.type == "const char*") {
-        s += Ident(ident + 1) + "free((void*)p->" + v.name + ");\n";        
-        
+        s += Ident(ident + 1) + "free((void*)p->" + v.name + ");\n";
+
         i = 1;
     }
-    else {        
+    else {
     }
-    return { "str": s, "ident": i} ;
+    return { "str": s, "ident": i };
 }
 
 function GenerateCapture(identation: number, info: Call, source: Source) {
@@ -228,32 +226,30 @@ function GenerateCapture(identation: number, info: Call, source: Source) {
         s += pair.str;
         k += pair.ident;
 
-        if (i == captures.length - 1)
-        {
-            s += Ident(identation + 2 + k ) + "p->onResult = onResult;\n";
-            s += Ident(identation+ 2 + k ) + "p->data = data;\n";
-            s += Ident(identation + 2 + k ) + "*pp = p;\n";
-            s += Ident(identation + 2 + k ) + "goto end;\n";
+        if (i == captures.length - 1) {
+            s += Ident(identation + 2 + k) + "p->onResult = onResult;\n";
+            s += Ident(identation + 2 + k) + "p->data = data;\n";
+            s += Ident(identation + 2 + k) + "*pp = p;\n";
+            s += Ident(identation + 2 + k) + "goto end;\n";
         }
     }
 
     for (var i = captures.length - 1; i >= 0; i--) {
         var pair = GetDestroyStatement(identation + 1 + k, captures[i]);
-        if (pair.ident == 1)
-        {
+        if (pair.ident == 1) {
             s += Ident(identation + 1 + k) + "}\n";
         }
         s += pair.str;
-        k -= pair.ident;        
-    }    
+        k -= pair.ident;
+    }
 
     if (captures.length > 0) {
         s += Ident(identation + 2) + "free((void*)p);\n";
     }
     else {
-        s += Ident(identation + 2 ) + "p->onResult = onResult;\n";
-        s += Ident(identation + 2 ) + "p->data = data;\n";
-        s += Ident(identation + 2 ) + "*pp = p;\n";
+        s += Ident(identation + 2) + "p->onResult = onResult;\n";
+        s += Ident(identation + 2) + "p->data = data;\n";
+        s += Ident(identation + 2) + "*pp = p;\n";
     }
 
     s += Ident(identation + 1) + "}\n";
@@ -272,11 +268,11 @@ function GenerateCapture(identation: number, info: Call, source: Source) {
     s += "{\n";
 
     for (var i = 0; i < captures.length; i++) {
-        
+
         var pair = GetDestroyStatement(identation, captures[i]);
         s += pair.str;
     }
-    s += Ident(identation + 1) +  "free((void*)p);\n";
+    s += Ident(identation + 1) + "free((void*)p);\n";
     s += "}\n\n";
 
 
@@ -434,8 +430,12 @@ function Generate(source: Source) {
 
     s += GenerateLines(1, source.firstCall.currentLine0, source.firstCall.lines0);
     var lines1 = GenerateLines(1, source.firstCall.currentLine1, source.firstCall.lines1);
-    s += GenerateLambdaCall(0, source.calls[0], lines1, source);
-
+    if (source.calls.length > 0) {
+        s += GenerateLambdaCall(0, source.calls[0], lines1, source);
+    }
+    else {
+        //nenhuma parte async dentro
+    }
     s += "}\n";
     strResult = s;
     return strResult;
@@ -631,10 +631,10 @@ function ParseAsyncBody(scanner: Scanner,
 
 function Parse(inputSource: string): string {
     var strResult = "";
-    
+
     var scanner = new Scanner(inputSource);
     for (; ;) {
-        
+
         if (scanner.lexeme == "async") {
 
             var sourceOut = new Source();
@@ -835,11 +835,11 @@ class Scanner {
 }
 
 
+//////////////////////////////////////////////
+//////////////////////////////////////////////
+///////////////////////////////////////////////
+///////////////////////////////////////////////
 
-//////////////////////////////////////////////
-//////////////////////////////////////////////
-///////////////////////////////////////////////
-///////////////////////////////////////////////
 
 
 var fs = require('fs');
