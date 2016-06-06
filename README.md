@@ -36,4 +36,11 @@ int main()
 O parametro void* que pode ser usado para passagem de argumentos para a callback.
 Existe uma garantia que é "a callback SEMPRE será chamada" em caso de erro ou successo.
 
+O gerador pode ser usado com linha de comando, é um programa em node.js. Ele tambem pode rodar dentro de uma pagina html.
+Junto do projeto esta um exemplo que tem thread pool e modelo de actores em C como testes de uso.
+
+O projeto esta em um estagio inicial e nao foi usado em nenhum projeto.
+
+O foco nao eh experimental e sim pratico. 
+
 
