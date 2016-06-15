@@ -41,6 +41,10 @@ Junto do projeto esta um exemplo que tem thread pool e modelo de actores em C co
 
 O projeto esta em um estagio inicial e nao foi usado em nenhum projeto.
 
-O foco nao eh experimental e sim pratico. 
+O foco nao eh experimental e sim pratico e por isso a ideia é colocar o codigo dentro de um projeto existente em C/C++ entre #ifdefs.
+Um processador faz o parser e acha as funcoes "async" gerando um codigo para elas.
+
+
+
 
 
